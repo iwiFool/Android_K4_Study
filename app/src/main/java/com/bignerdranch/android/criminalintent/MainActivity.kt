@@ -1,13 +1,12 @@
 package com.bignerdranch.android.criminalintent
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         setContentView(R.layout.actitvity_main)
 
         // 添加一个 CrimeFragment
@@ -21,7 +20,5 @@ class MainActivity : AppCompatActivity() {
                 .add(R.id.fragment_container, fragment) // 创建并提交了一个 fragment 事务
                 .commit()
         }
-
-
     }
 }

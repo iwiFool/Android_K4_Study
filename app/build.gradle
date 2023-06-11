@@ -66,4 +66,8 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
+    // 添加 ViewModel 的生命周期拓展依赖
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    // 添加 RecyclerView 依赖
+    implementation 'androidx.recyclerview:recyclerview:1.3.0'
 }

@@ -4,15 +4,8 @@ import androidx.lifecycle.ViewModel
 
 class CrimeListViewModel : ViewModel() {
 
-    val crimes = mutableListOf<Crime>()
-
-    // 初始化 批量生成 100 个 Crime
-    init {
-        for (i in 0 until 100) {
-            val crime = Crime()
-            crime.title = "Crime #$i"
-            crime.isSolved = i % 2 == 0
-            crimes += crime
-        }
-    }
+    // 在 ViewModel 里访问仓库
+    private val crimeRepository = CrimeRepository.get()
+//    val crimes = crimeRepository.getCrimes()
+    val crimeListLiveData = crimeRepository.getCrimes()
 }

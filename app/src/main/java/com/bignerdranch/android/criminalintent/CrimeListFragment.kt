@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,17 +22,19 @@ class CrimeListFragment : Fragment() {
 
     private lateinit var crimeRecyclerView: RecyclerView
     // 配置 adapter
-    private var adapter: CrimeAdapter? = null
+//    private var adapter: CrimeAdapter? = null
+    // 关联 RecyclerView
+    private var adapter: CrimeAdapter? = CrimeAdapter(emptyList())
 
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeListViewModel::class.java)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // 记录 CrimeListViewModel 中存放的 crime 对象数
-        Log.d(TAG, "Total crimes: ${crimeListViewModel.crimes.size}")
-    }
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        // 记录 CrimeListViewModel 中存放的 crime 对象数
+//        Log.d(TAG, "Total crimes: ${crimeListViewModel.crimes.size}")
+//    }
 
     companion object {
         // 为了让 activity 调用获取 fragment 实例
@@ -52,9 +55,22 @@ class CrimeListFragment : Fragment() {
             view.findViewById(R.id.crime_recycler_view) as RecyclerView
         crimeRecyclerView.layoutManager = LinearLayoutManager(context)
 
-        updateUI()
+//        updateUI()
 
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        crimeListViewModel.crimeListLiveData.observe(
+            viewLifecycleOwner,
+            Observer {crimes ->
+                crimes?.let {
+                    Log.i(TAG, "Got crimes ${crimes.size}")
+                    updateUI(crimes)
+                }
+            }
+        )
     }
 
     // RecyclerView 的任务仅限于回收和摆放屏幕上的 View
@@ -119,8 +135,9 @@ class CrimeListFragment : Fragment() {
         }
     }
 
-    private fun updateUI() {
-        val crimes = crimeListViewModel.crimes
+//    private fun updateUI() {
+    private fun updateUI(crimes: List<Crime>) {
+//        val crimes = crimeListViewModel.crimes
         adapter = CrimeAdapter(crimes)
         crimeRecyclerView.adapter = adapter
     }

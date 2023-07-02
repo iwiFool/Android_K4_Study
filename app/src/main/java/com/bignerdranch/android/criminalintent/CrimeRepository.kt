@@ -7,6 +7,7 @@ import androidx.room.Room
 import com.bignerdranch.android.criminalintent.database.CrimeDatabase
 import java.lang.IllegalStateException
 import java.util.UUID
+import java.util.concurrent.Executors
 
 /**
  * 仓库类
@@ -26,12 +27,26 @@ class CrimeRepository private constructor(context: Context) {
 
     private val crimeDao = database.crimeDao()
 
+    private val executor = Executors.newSingleThreadExecutor()
+
     // 添加仓库函数
     // 通过仓库调用 Dao 中的操作函数
 //    fun getCrimes(): List<Crime> = crimeDao.getCrimes()
     fun getCrimes(): LiveData<List<Crime>> = crimeDao.getCrimes()
 //    fun getCrime(id: UUID): Crime? = crimeDao.getCrime(id)
     fun getCrime(id: UUID): LiveData<Crime?> = crimeDao.getCrime(id)
+
+    fun update(crime: Crime) {
+        executor.execute {
+            crimeDao.updateCrime(crime)
+        }
+    }
+
+    fun addCrime(crime: Crime) {
+        executor.execute {
+            crimeDao.addCrime(crime)
+        }
+    }
 
     // 使成为单例
     companion object {

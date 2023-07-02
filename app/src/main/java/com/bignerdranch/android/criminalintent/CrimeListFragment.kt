@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent
 
+import android.content.Context
 import android.media.Image
 import android.os.Bundle
 import android.text.format.DateFormat
@@ -15,10 +16,20 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.util.UUID
 
 private const val  TAG = "CrimeListFragment"
 
 class CrimeListFragment : Fragment() {
+
+    /**
+     * 托管 activity 所需实现的 接口
+     */
+    interface Callbacks {
+        fun onCrimeSelected(crimeId: UUID)
+    }
+
+    private var callbacks: Callbacks? = null
 
     private lateinit var crimeRecyclerView: RecyclerView
     // 配置 adapter
@@ -35,6 +46,13 @@ class CrimeListFragment : Fragment() {
 //        // 记录 CrimeListViewModel 中存放的 crime 对象数
 //        Log.d(TAG, "Total crimes: ${crimeListViewModel.crimes.size}")
 //    }
+
+    // 当 fragment 附加到 activity 时， 会调用 Fragment.onAttach(Context) 生命周期函数。
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        // 这里，我们把传给 onAttach(...) 的 Context 值参保存到 callbacks 属性里。
+        callbacks = context as Callbacks?
+    }
 
     companion object {
         // 为了让 activity 调用获取 fragment 实例
@@ -73,6 +91,11 @@ class CrimeListFragment : Fragment() {
         )
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        callbacks = null
+    }
+
     // RecyclerView 的任务仅限于回收和摆放屏幕上的 View
     // 列表项 View 能够显示数据还离不开 ViewHolder 子类和 Adapter 子类
     private inner class CrimeHolder(view: View)
@@ -105,8 +128,10 @@ class CrimeListFragment : Fragment() {
 
         // 检测用户点击事件
         override fun onClick(p0: View?) {
-            Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT)
-                .show()
+//            Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT)
+//                .show()
+            // 响应用户点击 crime 列表项事件
+            callbacks?.onCrimeSelected(crime.id)
         }
     }
 

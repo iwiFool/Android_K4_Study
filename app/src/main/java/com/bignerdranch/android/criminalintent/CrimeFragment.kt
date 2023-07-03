@@ -14,11 +14,14 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
+import java.util.Date
 import java.util.UUID
 
 private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
-class CrimeFragment : Fragment() {
+private const val DIALOG_DATE = "DialogDate"
+private const val REQUEST_DATE = 0
+class CrimeFragment : Fragment(), DatePickFragment.Callbacks {
 
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
@@ -51,10 +54,10 @@ class CrimeFragment : Fragment() {
         // 生成 Button 部件
         dateButton = view.findViewById(R.id.crime_date) as Button
 
-        dateButton.apply {
-            text = crime.date.toString()
-            isEnabled = false
-        }
+//        dateButton.apply {
+//            text = crime.date.toString()
+//            isEnabled = false
+//        }
 
         // 生成 CheckBox 部件
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
@@ -123,6 +126,18 @@ class CrimeFragment : Fragment() {
                 crime.isSolved = isChecked
             }
         }
+
+        // 显示 DialogFragment
+        dateButton.setOnClickListener {
+//            DatePickFragment().apply {
+            DatePickFragment.newInstance(crime.date).apply {
+                // 设置目标 fragment
+                setTargetFragment(this@CrimeFragment, REQUEST_DATE)
+                // 需要 this@CrimeFragment 来调用 requireFragmentManager()
+                // 注意，在 apply 函数块中，this 引用的是 外部的 DatePickerFragment，因此 这里需要加 this 关键字
+                show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
+            }
+        }
     }
 
     override fun onStop() {
@@ -141,5 +156,10 @@ class CrimeFragment : Fragment() {
                 arguments = args
             }
         }
+    }
+
+    override fun onDateSelected(date: Date) {
+        crime.date = date
+        updateUI()
     }
 }

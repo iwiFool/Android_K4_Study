@@ -1,8 +1,15 @@
 package com.bignerdranch.android.criminalintent
 
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.format.DateFormat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -21,12 +28,16 @@ private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
 private const val DIALOG_DATE = "DialogDate"
 private const val REQUEST_DATE = 0
+private const val REQUEST_CONTACT = 1
+private const val DATE_FORMAT = "EEE, MMM, dd"
 class CrimeFragment : Fragment(), DatePickFragment.Callbacks {
 
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
     private lateinit var dateButton: Button
     private lateinit var solvedCheckBox: CheckBox
+    private lateinit var reportButton: Button
+    private lateinit var suspectButton: Button
     // 关联 CrimeFragment 和 CrimeDetailViewModel
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeDetailViewModel::class.java)
@@ -61,6 +72,8 @@ class CrimeFragment : Fragment(), DatePickFragment.Callbacks {
 
         // 生成 CheckBox 部件
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
+        reportButton = view.findViewById(R.id.crime_report) as Button
+        suspectButton = view.findViewById(R.id.crime_suspect) as Button
 
         return view
     }
@@ -88,6 +101,56 @@ class CrimeFragment : Fragment(), DatePickFragment.Callbacks {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState()
         }
+
+        if (crime.suspect.isNotEmpty()) {
+            suspectButton.text = crime.suspect
+        }
+    }
+
+    // 获取联系人姓名
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when {
+            resultCode != Activity.RESULT_OK -> return
+
+            requestCode == REQUEST_CONTACT && data != null -> {
+                val contactUri: Uri? = data.data
+                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+                val cursor = contactUri?.let {
+                    requireActivity().contentResolver
+                        .query(it, queryFields, null, null, null)
+                }
+                cursor?.use {
+                    if (it.count == 0) {
+                        return
+                    }
+
+                    it.moveToFirst()
+                    val suspect = it.getString(0)
+                    crime.suspect = suspect
+                    crimeDetailViewModel.saveCrime(crime)
+                    suspectButton.text = suspect
+                }
+            }
+        }
+    }
+
+    // 新增 getCrimeReport() 方函数
+    private fun getCrimeReport() : String {
+        val solvedString = if (crime.isSolved) {
+            getString(R.string.crime_report_solved)
+        } else {
+            getString(R.string.crime_report_unsolved)
+        }
+
+        val dateString = DateFormat.format(DATE_FORMAT, crime.date).toString()
+        val suspect = if(crime.suspect.isBlank()) {
+            getString(R.string.crime_report_no_suspect)
+        } else {
+            getString(R.string.crime_report_suspect, crime.suspect)
+        }
+
+        return getString(R.string.crime_report, crime.title, dateString, solvedString, suspect)
     }
 
     override fun onStart() {
@@ -136,6 +199,44 @@ class CrimeFragment : Fragment(), DatePickFragment.Callbacks {
                 // 需要 this@CrimeFragment 来调用 requireFragmentManager()
                 // 注意，在 apply 函数块中，this 引用的是 外部的 DatePickerFragment，因此 这里需要加 this 关键字
                 show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
+            }
+        }
+
+        // 发送消息
+        reportButton.setOnClickListener {
+            Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, getCrimeReport())
+                putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    getString(R.string.crime_report_subject)
+                )
+            }.also { intent ->
+//                startActivity(intent)
+                // 使用选择器
+                val chooserIntent =
+                    Intent.createChooser(intent, getString(R.string.send_report))
+                startActivity(chooserIntent)
+            }
+        }
+
+        suspectButton.apply {
+            val pickContactIntent =
+                Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+
+            setOnClickListener {
+                startActivityForResult(pickContactIntent, REQUEST_CONTACT)
+            }
+
+//            pickContactIntent.addCategory(Intent.CATEGORY_HOME)
+
+            // 检查可响应任务的 activity
+            val packageManager: PackageManager = requireActivity().packageManager
+            val resolvedActivity: ResolveInfo? =
+                packageManager.resolveActivity(pickContactIntent,
+                PackageManager.MATCH_DEFAULT_ONLY)
+            if (resolvedActivity == null) {
+                isEnabled = false
             }
         }
     }

@@ -6,11 +6,16 @@ import android.os.Bundle
 import android.text.format.DateFormat
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -54,6 +59,12 @@ class CrimeListFragment : Fragment() {
         callbacks = context as Callbacks?
     }
 
+    // 接收选项菜单函数回调
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     companion object {
         // 为了让 activity 调用获取 fragment 实例
         fun newInstance(): CrimeListFragment {
@@ -95,6 +106,26 @@ class CrimeListFragment : Fragment() {
         super.onDetach()
         callbacks = null
     }
+
+    // 实例化选项菜单
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_crime_list, menu)
+    }
+
+    // 响应菜单栏选择事件
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.new_crime -> {
+                val crime = Crime()
+                crimeListViewModel.addCrime(crime)
+                callbacks?.onCrimeSelected(crime.id)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
 
     // RecyclerView 的任务仅限于回收和摆放屏幕上的 View
     // 列表项 View 能够显示数据还离不开 ViewHolder 子类和 Adapter 子类

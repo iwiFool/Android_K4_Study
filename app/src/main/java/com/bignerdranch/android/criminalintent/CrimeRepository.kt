@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.Room
 import com.bignerdranch.android.criminalintent.database.CrimeDatabase
 import com.bignerdranch.android.criminalintent.database.migration_1_2
+import java.io.File
 import java.lang.IllegalStateException
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -33,6 +34,8 @@ class CrimeRepository private constructor(context: Context) {
 
     private val executor = Executors.newSingleThreadExecutor()
 
+    private val filesDir = context.applicationContext.filesDir
+
     // 添加仓库函数
     // 通过仓库调用 Dao 中的操作函数
 //    fun getCrimes(): List<Crime> = crimeDao.getCrimes()
@@ -51,6 +54,9 @@ class CrimeRepository private constructor(context: Context) {
             crimeDao.addCrime(crime)
         }
     }
+
+    // 定位照片文件
+    fun getPhotoFile(crime: Crime): File = File(filesDir, crime.photoFileName)
 
     // 使成为单例
     companion object {

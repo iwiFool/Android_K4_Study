@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import java.io.File
 import java.util.UUID
 
 // 为 CrimeFragment 添加 ViewModel
@@ -27,5 +28,10 @@ class CrimeDetailViewModel() : ViewModel() {
 
     fun saveCrime(crime: Crime) {
         crimeRepository.update(crime)
+    }
+
+    // 通过 CrimeDetailViewModel 展示文件信息
+    fun getPhotoFile(crime: Crime): File {
+        return crimeRepository.getPhotoFile(crime)
     }
 }

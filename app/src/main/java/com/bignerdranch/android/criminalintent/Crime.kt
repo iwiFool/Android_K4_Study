@@ -12,5 +12,9 @@ data class Crime(
     var title: String = "",
     var date: Date = Date(),
     var isSolved: Boolean = false,
-    var suspect: String = ""
-)
+    var suspect: String = "") {
+
+    // 添加计算属性获取文件名
+    val photoFileName
+        get() = "IMG_$id.jpg"
+}
